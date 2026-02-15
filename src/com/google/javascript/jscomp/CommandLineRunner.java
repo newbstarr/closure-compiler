@@ -46,6 +46,7 @@ import com.google.javascript.jscomp.parsing.parser.FeatureSet.Feature;
 import com.google.javascript.jscomp.transpile.BaseTranspiler;
 import com.google.javascript.jscomp.transpile.BaseTranspiler.CompilerSupplier;
 import com.google.javascript.jscomp.transpile.Transpiler;
+import com.google.javascript.jscomp.RandomNameGenerator;
 import com.google.javascript.rhino.TokenStream;
 import com.google.protobuf.TextFormat;
 import java.io.BufferedReader;
@@ -762,6 +763,14 @@ public class CommandLineRunner extends AbstractCommandLineRunner<Compiler, Compi
                 + "Intended for use by stream-based build systems such as gulpjs. "
                 + "Options: NONE, IN, OUT, BOTH. Defaults to NONE.")
     private CompilerOptions.JsonStreamMode jsonStreamMode = CompilerOptions.JsonStreamMode.NONE;
+    
+    @Option(
+        name = "--randomise_names",
+        hidden = true,
+        usage =
+            "By default generate same output from the same input, with this flag"
+            + "specify names generation will accept a salt.")
+    private boolean useRandomNames = false;
 
     @Option(
         name = "--preserve_type_annotations",
@@ -2023,6 +2032,11 @@ public class CommandLineRunner extends AbstractCommandLineRunner<Compiler, Compi
         options.setExtractPrototypeMemberDeclarations(
             ExtractPrototypeMemberDeclarationsMode.USE_CHUNK_TEMP);
       }
+    }
+    
+    if (flags.useRandomNames)
+    {
+        options.setNameGenerator(new RandomNameGenerator());
     }
 
     return options;
