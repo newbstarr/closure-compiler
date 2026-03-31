@@ -66,6 +66,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -75,6 +76,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -1732,6 +1734,12 @@ public class CommandLineRunner extends AbstractCommandLineRunner<Compiler, Compi
       runCompiler = true;
 
       final CommandLineConfig config = getCommandLineConfig();
+      
+      // If using random names, add RANDOM_SEED as an extern so compiler knows about it
+      // if (flags.useRandomNames) {
+      //   flags.externs.add("var RANDOM_SEED;");
+      // }
+
       config
           .setPrintVersion(flags.version)
           .setPrintTree(flags.printTree)
@@ -1978,7 +1986,7 @@ public class CommandLineRunner extends AbstractCommandLineRunner<Compiler, Compi
       } catch (CmdLineException e) {
         reportError("ERROR - invalid package_json_entry_names format specified.");
       }
-    }
+    } 
 
     if (!flags.renaming) {
       options.setVariableRenaming(VariableRenamingPolicy.OFF);
@@ -2034,9 +2042,31 @@ public class CommandLineRunner extends AbstractCommandLineRunner<Compiler, Compi
       }
     }
     
-    if (flags.useRandomNames)
-    {
-        options.setNameGenerator(new RandomNameGenerator());
+    if (flags.useRandomNames) {
+      try {
+        Random random = new SecureRandom();
+        // Try to extract seed from defines if available
+        if (flags.define != null && !flags.define.isEmpty()) {
+          for (String define : flags.define) {
+            if (Strings.isNullOrEmpty(define)) {
+              continue;
+            }
+            if (define.startsWith("RANDOM_SEED=")) {
+              try {
+                String seedStr = define.substring("RANDOM_SEED=".length());
+                long seed = Long.parseLong(seedStr);
+                random.setSeed(seed);
+                break;
+              } catch (NumberFormatException e) {
+                // Ignore, use unseeded random
+              }
+            }
+          }
+        }
+        options.setNameGenerator(new RandomNameGenerator(random));
+      } catch (Exception e) {
+        throw new FlagUsageException("Failed to initialize random name generator: " + e.getMessage());
+      }
     }
 
     return options;

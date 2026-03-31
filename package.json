@@ -9,5 +9,8 @@
   },
   "scripts": {
     "compile": "java -jar bazel-bin/compiler_uberjar_deploy.jar"
+  },
+  "dependencies": {
+    "sonarqube": "^0.0.1"
   }
 }

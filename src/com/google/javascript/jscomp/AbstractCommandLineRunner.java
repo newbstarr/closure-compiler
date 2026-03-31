@@ -2362,6 +2362,12 @@ public abstract class AbstractCommandLineRunner<A extends Compiler, B extends Co
       return this;
     }
 
+    @CanIgnoreReturnValue
+    public CommandLineConfig addExterns(List<String> externs) {
+      this.externs.addAll(externs);
+      return this;
+    }
+
     private final List<FlagEntry<JsSourceType>> mixedJsSources = new ArrayList<>();
 
     /** The JavaScript source file names, including .js and .zip files. You may specify multiple. */
