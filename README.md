@@ -183,6 +183,50 @@ var x=42;
 A pre-compiled release of the compiler is also available via
 [Maven](https://mvnrepository.com/artifact/com.google.javascript/closure-compiler).
 
+#### Using Closure Compiler as a Java Library
+
+You can call the compiler directly from Java (for example from a Tomcat webapp), without executed CLI subprocesses.
+
+1. Build and install from this repo:
+
+```bash
+cd maven
+mvn -DskipTests clean install
+```
+
+2. Add dependency to your app `pom.xml`:
+
+```xml
+<dependency>
+  <groupId>com.google.javascript</groupId>
+  <artifactId>closure-compiler</artifactId>
+  <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+3. Use the public API (a runnable example is in `java-library-example/src/main/java`):
+
+```java
+import com.google.javascript.jscomp.CommandLineRunner;
+import com.google.javascript.jscomp.CompilationLevel;
+import com.google.javascript.jscomp.Compiler;
+import com.google.javascript.jscomp.CompilerOptions;
+import com.google.javascript.jscomp.Result;
+import com.google.javascript.jscomp.SourceFile;
+
+Compiler compiler = new Compiler();
+CompilerOptions options = new CompilerOptions();
+CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(options);
+
+List<SourceFile> externs = CommandLineRunner.getDefaultExterns();
+List<SourceFile> inputs = Collections.singletonList(SourceFile.fromCode("input.js", sourceCode));
+Result result = compiler.compile(externs, inputs, options);
+if (!result.success) {
+  throw new IllegalStateException("Compilation failed: " + result.errors.length + " errors");
+}
+String compiledSource = compiler.toSource();
+```
+
 ### Web-based tooling
 
 https://jscompressor.treblereel.dev/ is a web-based UI and REST API for Closure
@@ -851,3 +895,11 @@ without make's wrinkles and with the full portability of pure java code.</td>
     <td>Substantial changes to make them compatible with NpmCommandLineRunner.</td>
   </tr>
 </table>
+
+
+which node
+sudo apt install nodejs npm
+node --version
+RELEASE_NUM=v1 ./release.sh --no-deploy
+Shortest path, "RELEASE_NUM=v1 ./release.sh --no-deploy"
+
